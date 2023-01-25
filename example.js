@@ -1464,3 +1464,5 @@ var london = {
     "sunset": 1674664558
     }
     }
+
+    console.log(london.list.dt_txt);
