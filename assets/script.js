@@ -5,7 +5,7 @@ $(document).ready(function () {
     // start the url and concatenate with key to create a call
     // both are empty for now, but can build in the response function when looping data
     var geoURL = 'http://api.openweathermap.org/geo/1.0/direct?q=';
-    var apiURL = 'api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}';
+    var apiURL = 'http://api.openweathermap.org/data/2.5/forecast?';
     var key = 'd061286c4d7491a48e28c06cc0a8a6b6';
     // may need lat and lon variables
     var lon;
@@ -22,7 +22,6 @@ $(document).ready(function () {
         // searchString = $('#search-input').val();
         // queryURL = apiURL + searchString + '&appid=' + key;
         
-        console.log(queryURL);
         console.log(geoCode);
 
     // To use geocode API to get lon and lat from city search
@@ -33,7 +32,9 @@ $(document).ready(function () {
 
         lat = startResponse[0].lat;
         lon = startResponse[0].lon;
-        console.log('this is the lat ' + lat + ' this is the lon ' + lon)
+        console.log('this is the lat ' + lat + ' this is the lon ' + lon);
+        queryURL = apiURL + 'lat=' + lat + '&lon=' + lon + '&appid=' + key;
+        
     $.ajax({
         url:queryURL,
         method: 'GET'
@@ -47,6 +48,7 @@ $(document).ready(function () {
     // function to go through the data and create elements
     function response() {
         console.log('button clicked');
+        console.log(queryURL);
         
 
         // test some responses and log to console
