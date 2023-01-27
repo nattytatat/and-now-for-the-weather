@@ -1,9 +1,10 @@
 $(document).ready(function () {
 
-    var todaysDate = moment.locale('en-gb');
-    var todaysDate = moment().format('L');
-    var geoURL = 'http://api.openweathermap.org/geo/1.0/direct?q=';
-    var apiURL = 'http://api.openweathermap.org/data/2.5/forecast?';
+    var todaysDate = moment().format('DD/MM/YYYY');
+    // https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API key}.
+    var geoURL = 'https://api.openweathermap.org/data/2.5/weather?q=';
+    // http://api.openweathermap.org/data/2.5/weather?q=London&appid=YOUR_API_KEY
+    var apiURL = 'https://api.openweathermap.org/data/2.5/forecast?';
     var key = 'd061286c4d7491a48e28c06cc0a8a6b6';
     // may need lat and lon variables
     var lon;
@@ -16,16 +17,18 @@ $(document).ready(function () {
     $('#search-button').on('click', function () {
         event.preventDefault();
         searchString = $('#search-input').val();
-        geoCode = geoURL + searchString + '&limit=1&appid=' + key;
+        geoCode = geoURL + searchString + '&appid=' + key;
+        
 
         // To use geocode API to get lon and lat from city search -parse the results to the next ajax query
         $.ajax({
             url: geoCode,
             method: 'GET'
+            // maybe move this to a function outside the call as it is turning into a soup
         }).then(function (startResponse) {
 
-            lat = startResponse[0].lat;
-            lon = startResponse[0].lon;
+            lat = startResponse.coord.lat;
+            lon = startResponse.coord.lon;
             console.log('this is the lat ' + lat + ' this is the lon ' + lon);
             queryURL = apiURL + 'lat=' + lat + '&lon=' + lon + '&appid=' + key;
 
@@ -33,33 +36,59 @@ $(document).ready(function () {
                 url: queryURL,
                 method: 'GET'
             }).then(function (fullResponse) {
-                console.log(fullResponse.list[0].main.temp);
-                var forecastToday = $('<div>');
-                forecastToday.text(fullResponse.list[0].main.temp);
+
+                // pass response of list objects to new variable to shorten code later
+                var results = fullResponse.list[0];
+                // converting Kelvin temp to celcius, with 2 decimal points
+                var temp = (results.main.temp - 273.15).toFixed(2);
+                var wind = results.wind.speed;
+                var humid = results.main.humidity;
+                // grab icon data then pass it through a variable- as comes in parts!
+                var icon = results.weather[0].icon;
+                var iconURL = 'https://openweathermap.org/img/wn/' + icon + '.png';
+
+                
+                var weatherToday = $('<div>');
+                weatherToday.addClass('col-12 border p-4');
+
+                var cityToday = $('<h2 class="text-capitalize">');
+                cityToday.text(searchString + ' (' + todaysDate + ') ');
+
+                var displayIcon = $('<img>');
+                displayIcon.attr('src', iconURL);
+                displayIcon.attr('title', results.weather[0].description);
+
+                var listWeather = $('<ul class="list-unstyled">');
+                var listTemp = $('<li class="pb-2">').text('Temp: ' + temp + ' ℃');
+                var listWind = $('<li class="pb-2">').text('Wind: ' + wind + ' KPH');
+                var listHumid = $('<li class="pb-2">').text('Humidity: ' + humid + ' %');
+
+                weatherToday.append(cityToday);
+                cityToday.append(displayIcon);
+                weatherToday.append(listWeather);
+                listWeather.append(listTemp, listWind, listHumid);
 
                 //append items
-                $('#today').append(forecastToday);
+                $('#today').append(weatherToday);
+
+                //for loop to go through the other 5 day forecast
+                for (var i = 0; i < 5; i++) {
+                    var forecast = results[i];
+                    
+                }
             });
+
+            console.log(geoCode);
+    console.log(queryURL);
 
         });
 
 
     });
 
-    // // function to go through the data and create elements
-    // function fullResponse() {
-
-    //     // print the response - either in console log or to html using json stringify
-    //     console.log('button clicked');
-    //     console.log(fullResponse);
-
-
-    // }
-
-    // Identify Search parameters - lon and lat, city, weather icon?, temp, wind, humidity
+    
 
     // List the previous searched cities - using local storage
-    console.log(todaysDate);
 
 
 });
