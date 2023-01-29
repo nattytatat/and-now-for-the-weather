@@ -1,0 +1,13 @@
+* {
+    margin:0;
+    padding: 0;
+}
+
+.forecast-block {
+    padding:20px 40px;
+    background-color: #192841;
+}
+
+.forecast-block h5, .forecast-block p {
+    color:#ffffff;
+}
