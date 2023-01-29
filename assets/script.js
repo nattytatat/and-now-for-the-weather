@@ -3,23 +3,44 @@ var apiURL = 'https://api.openweathermap.org/data/2.5/weather?';
 var mainURL = 'https://api.openweathermap.org/data/2.5/forecast?';
 var key = '&appid=d061286c4d7491a48e28c06cc0a8a6b6';
 var fiveDayHeading = $('<h4 id="forecast-heading" class="my-4">').text('Five Day Forecast:');
+var cityBtns = $('#history');
+var clearBtn = $('<button id="clear-buttons" class="btn btn-warning py-2 mt-4">').text('Clear Saved Cities');
+var previousSearch = '';
 
 var savedCities = JSON.parse(localStorage.getItem('savedCities')) || [];
 
-// Use a for loop to create a button for each saved city
-for (var i = 0; i < savedCities.length; i++) {
-    var theCity = savedCities[i];
-    var newBtn = $("<button>" + theCity + "</button>");
-    $(newBtn).on('click', function (event) {
-        searchString = theCity;
-        $('#today').empty();
-        $('#forecast').empty();
-        $('#forecast-heading').remove();
-        geoQuery();
-    });
+function buttonAdd() {
+    // clear previous buttons as I am just adding!! OMG!
+    cityBtns.empty();
+    // Use a for loop to create a button for each saved city
+    for (var i = 0; i < savedCities.length; i++) {
+        var theCity = savedCities[i];
+        var newBtn = $("<button class='btn-light btn-lg btn-block border-0 text-capitalize mb-2 py-2'>" + theCity + "</button>");
+        $(newBtn).on('click', function (event) {
+            event.preventDefault();
+            // change the searchstring to the saved text, then pass through the geoquery again
+            searchString = $(this).text();
+            $('#today').empty();
+            $('#forecast').empty();
+            $('#forecast-heading').remove();
+            geoQuery();
+        });
 
-    $('#history').append(newBtn);
+        cityBtns.append(newBtn);
+        cityBtns.append(clearBtn);
+
+        // clear all savedButtons
+        $(clearBtn).on('click', function () {
+            savedCities = [];
+            localStorage.clear();
+            $('#history').empty();
+            $('#today').empty();
+            $('#forecast').empty();
+            $('#forecast-heading').remove();
+        });
+    }
 }
+
 
 // add geolocation query in this function so it can be called for current and previous searches
 function geoQuery() {
@@ -28,7 +49,7 @@ function geoQuery() {
     // first AJAX call to parse the data from lat and lon values
     $.ajax({
         url: queryURL,
-        method: 'GET'
+        method: 'GET',
 
     }).then(function (firstResponse) {
 
@@ -99,6 +120,9 @@ function geoQuery() {
             $('#search-input').val('');
         });
 
+    }, function (error) {
+        alert('Please enter a valid location');
+        return;
     });
 }
 
@@ -106,12 +130,25 @@ function geoQuery() {
 //search button listener - have a different button listener and build for dynamic stored buttons
 $('#search-button').on('click', function (event) {
     event.preventDefault();
-    searchString = $('#search-input').val();
+    // some conditionals to check if empty values are input or if the search value already exists
+    if (searchString = '') {
+        alert('Please enter a valid location');
+        return;
+    } else {
+        searchString = $('#search-input').val().trim();
+    }   
+     // push search string to saved cities variable
+     if (savedCities.includes(searchString)) {
+        return alert('you have already searched this location');
+    } else {
+        savedCities.push(searchString);
+    }
+
 
     var queryURL = geoQuery();
 
-    // push search string to saved cities variable
-    savedCities.push(searchString);
+   
+    buttonAdd();
 
     // save city search to an array
     localStorage.setItem('savedCities', JSON.stringify(savedCities));
@@ -121,4 +158,7 @@ $('#search-button').on('click', function (event) {
     $('#forecast-heading').remove();
 
 });
+
+// ensure all buttons remain on page upon page reload
+buttonAdd();
 
